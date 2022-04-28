@@ -1,5 +1,3 @@
-import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -7,14 +5,13 @@ from pettingzoo.mpe import simple_spread_v2
 from pettingzoo.utils import to_parallel
 from torch import Tensor
 
-from utils.config_utils import ConfigObjectFactory
 from utils.env_utils import *
 
 
 class SimpleSpreadEnv(object):
     def __init__(self):
         self.env_config = ConfigObjectFactory.get_environment_config()
-        self.continuous_actions = self.env_config.learn_policy == "grid_wise_control+ddpg"
+        self.continuous_actions = "ddpg" in self.env_config.learn_policy or "ppo" in self.env_config.learn_policy
         self.env = simple_spread_v2.env(N=self.env_config.n_agents, local_ratio=0.5,
                                         max_cycles=self.env_config.max_cycles,
                                         continuous_actions=self.continuous_actions)

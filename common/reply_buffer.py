@@ -6,11 +6,12 @@ from numpy import ndarray
 from torch import Tensor
 
 from utils.config_utils import *
+from utils.train_utils import reshape_tensor_from_list
 
 LOCK_MEMORY = threading.Lock()
 
 
-class OneEpisodeMemory(object):
+class GridBatchEpisodeMemory(object):
     """
         每一局游戏的临时存储单元，
         一局游戏完毕后将临时数据放入Memory中，
@@ -23,15 +24,18 @@ class OneEpisodeMemory(object):
         self.rewards = []
         self.unit_poses = []
         self.unit_actions = []
+        self.log_probs = []
+        self.per_episode_len = []
         self.n_step = 0
 
     def store_one_episode(self, grid_input: Tensor, grid_input_next: Tensor,
-                          unit_pos: list, action: list, reward: float):
+                          unit_pos: list, action: list, reward: float, log_probs: list):
         self.grid_inputs.append(grid_input)
         self.grid_inputs_next.append(grid_input_next)
         self.unit_poses.append(unit_pos)
         self.unit_actions.append(action)
         self.rewards.append(reward)
+        self.log_probs.append(log_probs)
         self.n_step += 1
 
     def clear_memories(self):
@@ -40,10 +44,36 @@ class OneEpisodeMemory(object):
         self.unit_poses.clear()
         self.unit_actions.clear()
         self.rewards.clear()
+        self.log_probs.clear()
+        self.per_episode_len.clear()
         self.n_step = 0
 
+    def set_per_episode_len(self, episode_len: int):
+        self.per_episode_len.append(episode_len)
 
-class Memory(object):
+    def get_batch_data(self) -> dict:
+        """
+            将一个bact的reward恢复成[batch_num, episode_len]的形式,
+            以便于后序计算每个episode的discount reward
+            其他的数据直接融合[batch_num * episode_len, -1] 的形式
+            :return:一个batch的数据使用字典封装
+        """
+        grid_inputs = torch.cat(self.grid_inputs, dim=0)
+        unit_pos = torch.Tensor(self.unit_poses)
+        actions = torch.Tensor(self.unit_actions)
+        rewards = reshape_tensor_from_list(torch.Tensor(self.rewards), self.per_episode_len)
+        log_probs = torch.Tensor(self.log_probs)
+        data = {
+            'grid_inputs': grid_inputs,
+            'unit_pos': unit_pos,
+            'rewards': rewards,
+            'actions': actions,
+            'log_probs': log_probs
+        }
+        return data
+
+
+class GridMemory(object):
     """
         记忆单元，保存了之前所有局游戏的数据
     """
@@ -54,7 +84,7 @@ class Memory(object):
         self.current_idx = 0
         self.memory = []
 
-    def store_episode(self, one_episode_memory: OneEpisodeMemory):
+    def store_episode(self, one_episode_memory: GridBatchEpisodeMemory):
         with LOCK_MEMORY:
             grid_inputs = torch.cat(one_episode_memory.grid_inputs, dim=0)
             grid_inputs_next = torch.cat(one_episode_memory.grid_inputs_next, dim=0)
@@ -138,35 +168,43 @@ class Memory(object):
         return len(self.memory)
 
 
-class CommOneEpisodeMemory(object):
+class CommBatchEpisodeMemory(object):
     """
         存储每局游戏的记忆单元, 适用于常规marl算法(grid_net除外)
     """
 
-    def __init__(self, n_actions: int, n_agents: int):
+    def __init__(self, continuous_actions: bool, n_actions: int = 0, n_agents: int = 0):
+        self.continuous_actions = continuous_actions
+        self.n_actions = n_actions
+        self.n_agents = n_agents
         self.obs = []
         self.obs_next = []
         self.state = []
         self.state_next = []
         self.rewards = []
         self.unit_actions = []
+        self.log_probs = []
         self.unit_actions_onehot = []
-        self.n_actions = n_actions
-        self.n_agents = n_agents
+        self.per_episode_len = []
         self.n_step = 0
 
-    def store_one_episode(self, one_obs: dict, one_obs_next: dict, one_state: ndarray, one_state_next: ndarray,
-                          action: list, reward: float):
+    def store_one_episode(self, one_obs: dict, one_state: ndarray, action: list, reward: float,
+                          one_obs_next: dict = None, one_state_next: ndarray = None, log_probs: list = None):
         one_obs = torch.stack([torch.Tensor(value) for value in one_obs.values()], dim=0)
-        one_obs_next = torch.stack([torch.Tensor(value) for value in one_obs_next.values()], dim=0)
         self.obs.append(one_obs)
-        self.obs_next.append(one_obs_next)
         self.state.append(torch.Tensor(one_state))
-        self.state_next.append(torch.Tensor(one_state_next))
         self.rewards.append(reward)
         self.unit_actions.append(action)
-        self.unit_actions_onehot.append(
-            torch.zeros(self.n_agents, self.n_actions).scatter_(1, torch.LongTensor(action).unsqueeze(dim=-1), 1))
+        if one_obs_next is not None:
+            one_obs_next = torch.stack([torch.Tensor(value) for value in one_obs_next.values()], dim=0)
+            self.obs_next.append(one_obs_next)
+        if one_state_next is not None:
+            self.state_next.append(torch.Tensor(one_state_next))
+        if log_probs is not None:
+            self.log_probs.append(log_probs)
+        if not self.continuous_actions:
+            self.unit_actions_onehot.append(
+                torch.zeros(self.n_agents, self.n_actions).scatter_(1, torch.LongTensor(action).unsqueeze(dim=-1), 1))
         self.n_step += 1
 
     def clear_memories(self):
@@ -175,9 +213,34 @@ class CommOneEpisodeMemory(object):
         self.state.clear()
         self.state_next.clear()
         self.rewards.clear()
+        self.log_probs.clear()
         self.unit_actions.clear()
         self.unit_actions_onehot.clear()
+        self.per_episode_len.clear()
         self.n_step = 0
+
+    def set_per_episode_len(self, episode_len: int):
+        self.per_episode_len.append(episode_len)
+
+    def get_batch_data(self) -> dict:
+        """
+            获取一个batch的数据
+            :return:一个batch的数据使用字典封装
+        """
+        obs = torch.stack(self.obs, dim=0)
+        state = torch.stack(self.state, dim=0)
+        rewards = reshape_tensor_from_list(torch.Tensor(self.rewards), self.per_episode_len)
+        actions = torch.Tensor(self.unit_actions)
+        log_probs = torch.Tensor(self.log_probs)
+        data = {
+            'obs': obs,
+            'state': state,
+            'rewards': rewards,
+            'actions': actions,
+            'log_probs': log_probs,
+            'per_episode_len': self.per_episode_len
+        }
+        return data
 
 
 class CommMemory(object):
@@ -191,7 +254,7 @@ class CommMemory(object):
         self.current_idx = 0
         self.memory = []
 
-    def store_episode(self, one_episode_memory: CommOneEpisodeMemory):
+    def store_episode(self, one_episode_memory: CommBatchEpisodeMemory):
         with LOCK_MEMORY:
             obs = torch.stack(one_episode_memory.obs, dim=0)
             obs_next = torch.stack(one_episode_memory.obs_next, dim=0)

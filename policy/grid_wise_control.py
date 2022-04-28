@@ -6,7 +6,8 @@ from torch import Tensor
 from networks.grid_net_actor import AutoEncoder
 from networks.grid_net_critic import StateValueModel
 from policy.base_policy import BasePolicy
-from utils.config_utils import ConfigObjectFactory, weight_init
+from utils.config_utils import ConfigObjectFactory
+from utils.train_utils import weight_init
 
 
 class GridWiseControl(BasePolicy):

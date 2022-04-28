@@ -5,7 +5,8 @@ from torch import Tensor
 
 from networks.qmix_net import RNN, QMixNet
 from policy.base_policy import BasePolicy
-from utils.config_utils import ConfigObjectFactory, weight_init
+from utils.config_utils import ConfigObjectFactory
+from utils.train_utils import weight_init
 
 
 class QMix(BasePolicy):

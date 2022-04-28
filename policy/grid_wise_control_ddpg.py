@@ -3,10 +3,11 @@ import os
 import torch
 from torch import Tensor
 
-from networks.grid_net_actor import AutoEncoderDDPG
+from networks.grid_net_actor import AutoEncoderContinuousActions
 from networks.grid_net_critic import QValueModelDDPG
 from policy.base_policy import BasePolicy
-from utils.config_utils import ConfigObjectFactory, weight_init
+from utils.config_utils import ConfigObjectFactory
+from utils.train_utils import weight_init
 
 
 class GridWiseControlDDPG(BasePolicy):
@@ -17,8 +18,8 @@ class GridWiseControlDDPG(BasePolicy):
         self.n_agents = env_info["n_agents"]
         self.action_dim = env_info["action_dim"]
         # 初始化各种网络
-        self.auto_encoder_eval = AutoEncoderDDPG(env_info["grid_input_shape"])
-        self.auto_encoder_target = AutoEncoderDDPG(env_info["grid_input_shape"]).requires_grad_(False)
+        self.auto_encoder_eval = AutoEncoderContinuousActions(env_info["grid_input_shape"])
+        self.auto_encoder_target = AutoEncoderContinuousActions(env_info["grid_input_shape"]).requires_grad_(False)
         self.q_value_network_eval = QValueModelDDPG(env_info["grid_input_shape"], self.n_agents,
                                                     self.action_dim)
         self.q_value_network_target = QValueModelDDPG(env_info["grid_input_shape"],
@@ -38,6 +39,7 @@ class GridWiseControlDDPG(BasePolicy):
         self.auto_encoder_eval_path = os.path.join(self.model_path, "grid_wise_control_ddpg_auto_encoder_eval.pth")
         self.auto_encoder_target_path = os.path.join(self.model_path, "grid_wise_control_ddpg_auto_encoder_target.pth")
 
+        # 是否使用GPU加速
         if self.train_config.cuda:
             torch.cuda.empty_cache()
             self.device = torch.device('cuda:0')
