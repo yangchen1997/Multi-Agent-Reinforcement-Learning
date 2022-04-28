@@ -1,10 +1,12 @@
 environment:
   grid_size: 16
-  learn_policy: "grid_wise_control+ddpg"
+  learn_policy: "centralized_ppo"
+  max_cycles: 35
 train:
   epochs: 1000000
   show_evaluate_epoch: 100
   evaluate_epoch: 2
+
 
 
 

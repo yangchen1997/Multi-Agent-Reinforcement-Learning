@@ -72,14 +72,14 @@ class AutoEncoder(nn.Module, ABC):
         return decoder_output_softmax, encoder_output_clone
 
 
-class AutoEncoderDDPG(AutoEncoder, ABC):
+class AutoEncoderContinuousActions(AutoEncoder, ABC):
     def __init__(self, grid_input_shape: list, action_dim: int = 5):
-        super(AutoEncoderDDPG, self).__init__(action_dim, grid_input_shape)
+        super(AutoEncoderContinuousActions, self).__init__(action_dim, grid_input_shape)
 
     def forward(self, grid_input):
         encoder_output = self.encoder(grid_input)
         decoder_output = self.decoder(grid_input, encoder_output)
+        # 对action进行放缩，实际上a in [0,1]
         decoder_output_sigmoid = torch.sigmoid(decoder_output)
-        # 对action进行放缩，实际上a in [-1,1]
         encoder_output_clone = encoder_output.clone().detach().view(-1, self.auto_encoder_output_shape)
         return decoder_output_sigmoid, encoder_output_clone
