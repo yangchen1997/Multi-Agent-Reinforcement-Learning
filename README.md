@@ -8,7 +8,7 @@ The implementation of multi-agent reinforcement learning algorithm in Pytorch, i
 
 # Petting Zoo
 
-**MPE: **Multi Particle Environments (MPE) are a set of communication oriented environment where particle agents can (sometimes) move, communicate, see each other, push each other around, and interact with fixed landmarks.
+**MPE:** Multi Particle Environments (MPE) are a set of communication oriented environment where particle agents can (sometimes) move, communicate, see each other, push each other around, and interact with fixed landmarks.
 
 These environments are from [OpenAI’s MPE](https://github.com/openai/multiagent-particle-envs) codebase, with several minor fixes, mostly related to making the action space discrete by default, making the rewards consistent and cleaning up the observation space of certain environments.
 
