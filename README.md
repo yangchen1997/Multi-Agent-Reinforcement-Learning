@@ -18,6 +18,20 @@ The environment applied in this project is **Simple Spread** (I'm also consideri
 
 
 
+# Requirement
+
+Note: The following are suggested versions only, and do not mean that the program will not work with other versions.
+
+| Name       | Version     |
+| ---------- | ----------- |
+| Python     | 3.6.1       |
+| gym        | 0.21.0      |
+| numpy      | 1.19.1      |
+| PettingZoo | 1.12.0      |
+| Pytorch    | 1.6.0+cu101 |
+
+
+
 # Corresponding Papers
 
 - [Grid-Wise Control for Multi-Agent Reinforcement Learning in Video Game AI]([proceedings.mlr.press/v97/han19a/han19a.pdf](http://proceedings.mlr.press/v97/han19a/han19a.pdf))
