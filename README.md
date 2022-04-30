@@ -21,7 +21,7 @@ The environment applied in this project is **Simple Spread** (I'm also consideri
 # Corresponding Papers
 
 - [Grid-Wise Control for Multi-Agent Reinforcement Learning in Video Game AI]([proceedings.mlr.press/v97/han19a/han19a.pdf](http://proceedings.mlr.press/v97/han19a/han19a.pdf))
-- [QMIX: Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning]([[1803.11485\] QMIX: Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning (arxiv.org)](https://arxiv.org/abs/1803.11485))
+- [QMIX: Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning](https://arxiv.org/abs/1803.11485)
 
 - [The Surprising Effectiveness of PPOin Cooperative Multi-Agent Games](https://arxiv.org/abs/2103.01955)
 
