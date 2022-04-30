@@ -20,7 +20,7 @@ The environment applied in this project is **Simple Spread** (I'm also consideri
 
 # Requirement
 
-Note: The following are suggested versions only, and do not mean that the program will not work with other versions.
+Note: The following are suggested versions only, and do not mean the program will not work with other versions.
 
 | Name       | Version     |
 | ---------- | ----------- |
