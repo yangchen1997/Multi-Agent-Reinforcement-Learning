@@ -9,6 +9,7 @@ from policy.centralized_ppo import CentralizedPPO
 from policy.grid_wise_control import GridWiseControl
 from policy.grid_wise_control_ddpg import GridWiseControlDDPG
 from policy.grid_wise_control_ppo import GridWiseControlPPO
+from policy.independent_ppo import IndependentPPO
 from policy.qmix import QMix
 from utils.config_utils import ConfigObjectFactory
 
@@ -39,12 +40,19 @@ class MyAgents:
             self.action_space = self.env_info['action_space']
             self.policy = GridWiseControlPPO(self.env_info)
 
+        # 下面三个算法作为baseline
         elif self.env_config.learn_policy == "qmix":
             self.n_actions = self.env_info['n_actions']
             self.policy = QMix(self.env_info)
+
         elif self.env_config.learn_policy == "centralized_ppo":
             self.action_space = self.env_info['action_space']
             self.policy = CentralizedPPO(self.env_info)
+
+        elif self.env_config.learn_policy == "independent_ppo":
+            self.action_space = self.env_info['action_space']
+            self.policy = IndependentPPO(self.env_info)
+
         else:
             raise ValueError(
                 "learn_policy error, just support grid_wise_control, grid_wise_control+ddpg, grid_wise_control+ppo, "
@@ -117,6 +125,18 @@ class MyAgents:
                 action_means, _ = self.policy.ppo_actor(obs, self.policy.rnn_hidden)
             for i, agent_name in enumerate(self.env_info['agents_name']):
                 action_mean = action_means[:, i].squeeze()
+                dist = MultivariateNormal(action_mean, self.policy.get_cov_mat())
+                action = np.clip(dist.sample().cpu().numpy(), self.action_space.low,
+                                 self.action_space.high).astype(dtype=np.float32)
+                log_probs.append(dist.log_prob(torch.Tensor(action).to(self.device)))
+                actions_with_name[agent_name] = action
+                actions.append(action)
+        elif isinstance(self.policy, IndependentPPO):
+            obs = obs.to(self.device)
+            for i, agent_name in enumerate(self.env_info['agents_name']):
+                with torch.no_grad():
+                    action_mean, _ = self.policy.ppo_actor(obs[i].unsqueeze(dim=0), self.policy.rnn_hidden[i])
+                action_mean = action_mean.squeeze()
                 dist = MultivariateNormal(action_mean, self.policy.get_cov_mat())
                 action = np.clip(dist.sample().cpu().numpy(), self.action_space.low,
                                  self.action_space.high).astype(dtype=np.float32)

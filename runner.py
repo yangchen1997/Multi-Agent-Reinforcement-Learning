@@ -25,7 +25,7 @@ class RunnerSimpleSpreadEnv(object):
         elif "grid_wise_control" in self.env_config.learn_policy:
             self.memory = GridMemory()
             self.batch_episode_memory = GridBatchEpisodeMemory()
-        elif "centralized_ppo" == self.env_config.learn_policy:
+        elif "centralized_ppo" == self.env_config.learn_policy or "independent_ppo" == self.env_config.learn_policy:
             self.memory = None
             self.batch_episode_memory = CommBatchEpisodeMemory(continuous_actions=True)
         else:

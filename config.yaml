@@ -1,9 +1,9 @@
 environment:
   grid_size: 16
-  learn_policy: "centralized_ppo"
-  max_cycles: 35
+  learn_policy: "independent_ppo"
+  max_cycles: 40
 train:
-  epochs: 1000000
+  epochs: 100000
   show_evaluate_epoch: 100
   evaluate_epoch: 2
 
