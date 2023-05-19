@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from pettingzoo.mpe import simple_spread_v2
-from pettingzoo.utils import to_parallel
+from pettingzoo.mpe import simple_spread_v3
+from pettingzoo.utils import aec_to_parallel
 from torch import Tensor
 
 from utils.env_utils import *
@@ -12,10 +12,10 @@ class SimpleSpreadEnv(object):
     def __init__(self):
         self.env_config = ConfigObjectFactory.get_environment_config()
         self.continuous_actions = "ddpg" in self.env_config.learn_policy or "ppo" in self.env_config.learn_policy
-        self.env = simple_spread_v2.env(N=self.env_config.n_agents, local_ratio=0.5,
+        self.env = simple_spread_v3.env(N=self.env_config.n_agents, local_ratio=0.5,
                                         max_cycles=self.env_config.max_cycles,
                                         continuous_actions=self.continuous_actions)
-        self.parallel_env = to_parallel(self.env)
+        self.parallel_env = aec_to_parallel(self.env)
         self.world = self.parallel_env.unwrapped.world
         self.agents_name = self.parallel_env.possible_agents
         self.agents = self.world.agents
@@ -26,8 +26,7 @@ class SimpleSpreadEnv(object):
         return self.parallel_env.render(mode=mode)
 
     def reset(self):
-        self.parallel_env.seed(self.env_config.seed)
-        return self.parallel_env.reset()
+        return self.parallel_env.reset(seed=self.env_config.seed)
 
     def close(self):
         return self.parallel_env.close()
@@ -53,7 +52,7 @@ class SimpleSpreadEnv(object):
     def step(self, actions: dict):
         # self.env.render()
         # time.sleep(0.05)
-        observations, rewards, dones, infos = self.parallel_env.step(actions)
+        observations, rewards, dones, _, infos = self.parallel_env.step(actions)
         # 所有agent都结束游戏整局游戏才算结束
         finish_game = not (False in dones.values())
         rewards = sum(rewards.values()) / self.env_config.n_agents

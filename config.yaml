@@ -6,7 +6,4 @@ train:
   epochs: 1000000
   show_evaluate_epoch: 100
   evaluate_epoch: 2
-
-
-
-
+  cuda: False
