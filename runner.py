@@ -68,7 +68,7 @@ class RunnerSimpleSpreadEnv(object):
             elif isinstance(self.batch_episode_memory, CommBatchEpisodeMemory):
 
                 for i in range(run_episode):
-                    obs = self.env.reset()
+                    obs = self.env.reset()[0]
                     finish_game = False
                     cycle = 0
                     while not finish_game and cycle < self.env_config.max_cycles:
@@ -157,7 +157,7 @@ class RunnerSimpleSpreadEnv(object):
                     total_rewards += rewards
                     cycle += 1
             else:
-                obs = self.env.reset()
+                obs = self.env.reset()[0]
                 finish_game = False
                 cycle = 0
                 while not finish_game and cycle < self.env_config.max_cycles:

@@ -24,11 +24,11 @@ Note: The following are suggested versions only, and do not mean the program wil
 
 | Name       | Version     |
 | ---------- | ----------- |
-| Python     | 3.6.1       |
-| gym        | 0.21.0      |
-| numpy      | 1.19.1      |
-| PettingZoo | 1.12.0      |
-| Pytorch    | 1.6.0+cu101 |
+| Python     | 3.10.9      |
+| gymnasium  | 0.28.1      |
+| numpy      | 1.23.5      |
+| PettingZoo | 1.23.0      |
+| Pytorch    | 1.12.1      |
 
 
 
