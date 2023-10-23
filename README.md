@@ -30,7 +30,7 @@ Note: The following are suggested versions only, and do not mean the program wil
 | PettingZoo | 1.23.0      |
 | Pytorch    | 1.12.1      |
 
-
+Update on 4.10.2023: [Pytorch 2.0.0+cu118](https://pytorch.org/get-started/previous-versions/) on python 3.9.16 works. Please notice that python >3.9 won't work because PettingZoo 1.12.0 is not available.
 
 # Corresponding Papers
 

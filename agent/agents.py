@@ -27,7 +27,7 @@ class MyAgents:
         else:
             self.device = torch.device('cpu')
 
-        # 初始化学习策略，需要注意的是不同算法对应不通的动作空间(连续/离散)
+        # 初始化学习策略，需要注意的是不同算法对应不同的动作空间(连续/离散)
         if self.env_config.learn_policy == "grid_wise_control":
             self.n_actions = self.env_info['n_actions']
             self.policy = GridWiseControl(self.env_info)

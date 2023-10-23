@@ -7,7 +7,7 @@ class BasePolicy(object):
     def init_path(*args):
         for path in args:
             if not os.path.exists(path):
-                os.mkdir(path)
+                os.makedirs(path)
 
     # 初始化权重
     def init_wight(self):
